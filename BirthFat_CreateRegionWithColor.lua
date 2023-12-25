@@ -191,6 +191,11 @@ end
 function GetTopTraceCursorItemName()
   --reaper.ShowConsoleMsg("Main\n")
   
+  first_sel_track = reaper.GetTrack(1,0) --.GetSelectedTrack(0,0)
+  ref_track_id = reaper.GetMediaTrackInfo_Value(first_sel_track, "GUID")
+  trackCount = reaper.GetTrackNumMediaItems(first_sel_track)
+  --reaper.ShowConsoleMsg(trackCount)
+  
   first_sel_item = reaper.GetSelectedMediaItem(0,0)
   first_sel_item_pos_start = reaper.GetMediaItemInfo_Value(first_sel_item, "D_POSITION")
   first_sel_item_pos_end = first_sel_item_pos_start + reaper.GetMediaItemInfo_Value(first_sel_item, "D_LENGTH")
@@ -200,10 +205,7 @@ function GetTopTraceCursorItemName()
   --reaper.ShowConsoleMsg("Cursor Pos "..cursorPos.."\n")
   --reaper.ShowConsoleMsg("first item pos "..first_sel_item_pos_start.."\n")
   
-  first_sel_track = reaper.GetSelectedTrack(0,0)
-  ref_track_id = reaper.GetMediaTrackInfo_Value(first_sel_track, "GUID")
-  trackCount = reaper.GetTrackNumMediaItems(first_sel_track)
-  reaper.ShowConsoleMsg(trackCount)
+  
   for i = 0 , trackCount do
     item = reaper.GetMediaItem(0,i)   
     item_pos = reaper.GetMediaItemInfo_Value(item , "D_POSITION")
@@ -300,4 +302,3 @@ if count_sel_items > 0 then
 end
 
 --================================== Main ========================================================================
-
