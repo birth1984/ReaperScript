@@ -84,23 +84,6 @@ end
 
 -- UTILITIES -------------------------------------------------------------
 
--- Save item selection
-function SaveSelectedItems ()
-  for i = 0, count_sel_items - 1 do
-    local entry = {}
-    entry.item = reaper.GetSelectedMediaItem(0,i)
-    entry.pos_start = reaper.GetMediaItemInfo_Value(entry.item, "D_POSITION")
-    entry.pos_end = entry.pos_start + reaper.GetMediaItemInfo_Value(entry.item, "D_LENGTH")
-    local take = reaper.GetActiveTake( entry.item )
-    retval, entry.name = reaper.GetSetMediaItemInfo_String( entry.item, 'P_NOTES', '', false )
-    if take then
-      entry.color = reaper.GetDisplayedMediaItemColor2( entry.item, take )
-    else
-      entry.color = reaper.GetDisplayedMediaItemColor( entry.item )
-    end
-    table.insert(init_sel_items, entry)
-  end
-end
 
 --------------------------------------------------------- END OF UTILITIES
 
@@ -202,8 +185,65 @@ function GetRandomColor()
   return color_int
 end
 
--- Function End =================================  Caculate Color ===========================
+-- Function End ================================= Caculate Color ===========================
 
+-- Function Start =============================== GetTopTraceCursorItemName ===========================
+function GetTopTraceCursorItemName()
+  --reaper.ShowConsoleMsg("Main\n")
+  
+  first_sel_item = reaper.GetSelectedMediaItem(0,0)
+  first_sel_item_pos_start = reaper.GetMediaItemInfo_Value(first_sel_item, "D_POSITION")
+  first_sel_item_pos_end = first_sel_item_pos_start + reaper.GetMediaItemInfo_Value(first_sel_item, "D_LENGTH")
+  --reaper.ShowConsoleMsg(tostring(first_sel_item) )
+  
+  --cursorPos = reaper.GetCursorPosition()
+  --reaper.ShowConsoleMsg("Cursor Pos "..cursorPos.."\n")
+  --reaper.ShowConsoleMsg("first item pos "..first_sel_item_pos_start.."\n")
+  
+  first_sel_track = reaper.GetSelectedTrack(0,0)
+  ref_track_id = reaper.GetMediaTrackInfo_Value(first_sel_track, "GUID")
+  trackCount = reaper.GetTrackNumMediaItems(first_sel_track)
+  reaper.ShowConsoleMsg(trackCount)
+  for i = 0 , trackCount do
+    item = reaper.GetMediaItem(0,i)   
+    item_pos = reaper.GetMediaItemInfo_Value(item , "D_POSITION")
+    item_len = reaper.GetMediaItemInfo_Value(item , "D_LENGTH")
+    
+    
+    --reaper.ShowConsoleMsg(takeName.." Track item pos "..item_pos.. " ".. item_pos + item_len .."\n")
+    if item_pos < first_sel_item_pos_start and item_pos + item_len > first_sel_item_pos_start then
+    --if item_pos < cursorPos and item_pos + item_len > cursorPos then
+      take = reaper.GetActiveTake(item)
+      takeName = reaper.GetTakeName(take)
+      tailNum = string.find(takeName,".mp4")
+      takeName = string.sub(takeName, 0 , tailNum-1)
+      --reaper.ShowConsoleMsg(tailNum .." \n")
+      --reaper.ShowConsoleMsg(tostring(takeName).." Pos:"..item_pos.." Len:".. item_len .." \n")
+      return takeName 
+    end 
+  end
+  return "Nil"
+end
+-- Function End ================================ GetTopTraceCursorItemName ===========================
+
+
+-- Save item selection
+function SaveSelectedItems ()
+  for i = 0, count_sel_items - 1 do
+    local entry = {}
+    entry.item = reaper.GetSelectedMediaItem(0,i)
+    entry.pos_start = reaper.GetMediaItemInfo_Value(entry.item, "D_POSITION")
+    entry.pos_end = entry.pos_start + reaper.GetMediaItemInfo_Value(entry.item, "D_LENGTH")
+    local take = reaper.GetActiveTake( entry.item )
+    retval, entry.name = reaper.GetSetMediaItemInfo_String( entry.item, 'P_NOTES', '', false )
+    if take then
+      entry.color = reaper.GetDisplayedMediaItemColor2( entry.item, take )
+    else
+      entry.color = reaper.GetDisplayedMediaItemColor( entry.item )
+    end
+    table.insert(init_sel_items, entry)
+  end
+end
 
 --FUNCTION Start:=============================== Create regions from selected items notes and color ===========================
 
@@ -223,8 +263,9 @@ function BFCreatRegionsFromSelectedItemsNotesAndColor()
     end
   end
   count_markers_regions, count_markersOut, count_regionsOut = reaper.CountProjectMarkers(0)
+  trackName = GetTopTraceCursorItemName()
   
-  reaper.AddProjectMarker2( 0, true, tempPosStart, tempPosEnd, " ??? " , count_regionsOut, tempColor )
+  reaper.AddProjectMarker2( 0, true, tempPosStart, tempPosEnd, trackName , count_regionsOut, tempColor )
 end
 
 
@@ -259,3 +300,4 @@ if count_sel_items > 0 then
 end
 
 --================================== Main ========================================================================
+
